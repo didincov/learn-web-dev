@@ -1,26 +1,171 @@
 <!DOCTYPE html>
 <html lang="ru">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Выбор даты и времени</title>
-    <link rel="stylesheet" href="styles.css" />
-  </head>
-  <body>
-    <!--
-      ЗАДАНИЕ
-      ========
-      Сверстать страницу выбора даты и времени по своему макету.
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Выбор даты и времени</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
 
-      Пока это только вёрстка. Никакого JavaScript — ни кликов,
-      ни переходов, ни выбора дня. Всё статично.
-
-      Стили пишите в styles.css. Разметку — здесь.
-    -->
-
-    <div class="page">
-      <!-- Начните отсюда. Разметьте шапку, основную область
-           с календарём и слотами, подвал. -->
+  <header class="site-header">
+    <div class="logo">
+      <img src="images/logo.png" alt="Стриж &amp; Стиль">
     </div>
-  </body>
+    <nav class="main-nav">
+      <a href="#">Мастера</a>
+      <a href="#">Услуги</a>
+      <a href="#">Отзывы</a>
+      <a href="#">Контакты</a>
+    </nav>
+  </header>
+
+  <section class="progress" aria-label="Этапы записи">
+    <div class="progress-track"></div>
+    <div class="step completed">
+      <span>1</span>
+      <small>Выбор мастера</small>
+    </div>
+    <div class="step completed">
+      <span>2</span>
+      <small>Выбор услуги</small>
+    </div>
+    <div class="step current">
+      <span>3</span>
+      <small>Выбор даты</small>
+    </div>
+    <div class="step">
+      <span>4</span>
+      <small>Ваши данные</small>
+    </div>
+    <div class="step">
+      <span>5</span>
+      <small>Подтверждение заказа</small>
+    </div>
+  </section>
+
+  <main class="booking">
+    <div class="page-heading">
+      <a href="#" class="back-link" aria-label="Назад">←</a>
+      <h1>Выбор даты и времени</h1>
+    </div>
+
+    <div class="booking-panels">
+      <section class="calendar-panel" aria-label="Календарь">
+        <div class="panel-top">
+          <span class="month">Ноябрь 2026</span>
+          <div class="month-controls">
+            <button type="button" aria-label="Предыдущий месяц">‹</button>
+            <button type="button" aria-label="Следующий месяц">›</button>
+          </div>
+        </div>
+
+        <div class="weekdays">
+          <span>Пн</span>
+          <span>Вт</span>
+          <span>Ср</span>
+          <span>Чт</span>
+          <span>Пт</span>
+          <span>Сб</span>
+          <span>Вс</span>
+        </div>
+
+        <div class="calendar-days">
+          <button type="button" class="day past">26</button>
+          <button type="button" class="day past">27</button>
+          <button type="button" class="day past">28</button>
+          <button type="button" class="day past">29</button>
+          <button type="button" class="day past">30</button>
+          <button type="button" class="day past">31</button>
+          <button type="button" class="day">1</button>
+
+          <button type="button" class="day">2</button>
+          <button type="button" class="day">3</button>
+          <button type="button" class="day">4</button>
+          <button type="button" class="day">5</button>
+          <button type="button" class="day">6</button>
+          <button type="button" class="day">7</button>
+          <button type="button" class="day">8</button>
+
+          <button type="button" class="day selected">9</button>
+          <button type="button" class="day">10</button>
+          <button type="button" class="day">11</button>
+          <button type="button" class="day">12</button>
+          <button type="button" class="day">13</button>
+          <button type="button" class="day">14</button>
+          <button type="button" class="day">15</button>
+
+          <button type="button" class="day">16</button>
+          <button type="button" class="day">17</button>
+          <button type="button" class="day">18</button>
+          <button type="button" class="day">19</button>
+          <button type="button" class="day">20</button>
+          <button type="button" class="day">21</button>
+          <button type="button" class="day">22</button>
+
+          <button type="button" class="day">23</button>
+          <button type="button" class="day">24</button>
+          <button type="button" class="day">25</button>
+          <button type="button" class="day">26</button>
+          <button type="button" class="day">27</button>
+          <button type="button" class="day">28</button>
+          <button type="button" class="day">29</button>
+
+          <button type="button" class="day">30</button>
+          <button type="button" class="day next-month">1</button>
+          <button type="button" class="day next-month">2</button>
+          <button type="button" class="day next-month">3</button>
+          <button type="button" class="day next-month">4</button>
+          <button type="button" class="day next-month">5</button>
+          <button type="button" class="day next-month">6</button>
+        </div>
+      </section>
+
+      <section class="time-panel" aria-label="Доступное время">
+        <h2>Доступное время</h2>
+        <div class="time-slots">
+          <button type="button" class="time-slot">10:00</button>
+          <button type="button" class="time-slot occupied" disabled>11:00</button>
+          <button type="button" class="time-slot">12:00</button>
+          <button type="button" class="time-slot occupied" disabled>13:00</button>
+          <button type="button" class="time-slot selected-time">14:00</button>
+          <button type="button" class="time-slot">15:00</button>
+          <button type="button" class="time-slot">16:00</button>
+          <button type="button" class="time-slot">17:00</button>
+        </div>
+      </section>
+    </div>
+
+    <div class="booking-bottom">
+      <p>Выбранная дата и время: Понедельник, 9 ноября 2026, 14:00</p>
+      <button type="button" class="next-button">Далее</button>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-main">
+      <section class="footer-about">
+        <h2>«Стриж &amp; Стиль»</h2>
+        <p>Ваша любимая парикмахерская.<br>Профессиональный уход, доступные<br>цены и гарантированный результат.</p>
+      </section>
+
+      <section class="footer-contacts">
+        <h2><span>Контакты</span></h2>
+        <p>☎ &nbsp;+7 495 123-45-67</p>
+        <p>◎ &nbsp;ул. Садовая, 15, Москва</p>
+      </section>
+
+      <section class="footer-hours">
+        <h2><span>Режим работы</span></h2>
+        <p>Режим работы: Ежедневно с 09:00 до 21:00</p>
+      </section>
+    </div>
+
+    <div class="footer-bottom">
+      <span>© 2026. Все права защищены.</span>
+      <a href="#">Политика конфиденциальности</a>
+    </div>
+  </footer>
+
+</body>
 </html>
