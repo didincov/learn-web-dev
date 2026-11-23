@@ -35,14 +35,24 @@ function isDateSelectable(day, month, year, currentDate = today) {
 
 function buildCalendarGrid(year, month) {
   const firstDay = new Date(year, month, 1);
-  // Понедельник — первый день недели (0..6).
+  // Понедельник — первый день недели.
   const mondayOffset = (firstDay.getDay() + 6) % 7;
   const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const previousMonthDays = new Date(year, month, 0).getDate();
   const totalCells = Math.ceil((mondayOffset + daysInMonth) / 7) * 7;
   const grid = [];
+
   for (let cell = 0; cell < totalCells; cell++) {
-    const day = cell - mondayOffset + 1;
-    grid.push(day >= 1 && day <= daysInMonth ? day : null);
+    const rawDay = cell - mondayOffset + 1;
+    if (rawDay < 1) {
+      const date = new Date(year, month - 1, previousMonthDays + rawDay);
+      grid.push({ day: date.getDate(), month: date.getMonth(), year: date.getFullYear(), adjacent: true });
+    } else if (rawDay > daysInMonth) {
+      const date = new Date(year, month + 1, rawDay - daysInMonth);
+      grid.push({ day: date.getDate(), month: date.getMonth(), year: date.getFullYear(), adjacent: true });
+    } else {
+      grid.push({ day: rawDay, month, year, adjacent: false });
+    }
   }
   return grid;
 }
@@ -61,17 +71,18 @@ function getSlotsForDate(day, month, year) {
 function renderCalendar() {
   const calendar = document.querySelector('#calendar-days');
   const monthTitle = document.querySelector('#month-title');
-  monthTitle.textContent = MONTHS_NOMINATIVE[state.currentMonth];
+  monthTitle.textContent = `${MONTHS_NOMINATIVE[state.currentMonth]} ${state.currentYear}`;
   const days = buildCalendarGrid(state.currentYear, state.currentMonth);
 
-  calendar.innerHTML = days.map(day => {
-    if (day === null) return '<span class="day empty"></span>';
-    const selectable = isDateSelectable(day, state.currentMonth, state.currentYear);
-    const selected = day === state.selectedDay;
+  calendar.innerHTML = days.map(dateInfo => {
+    const { day, month, year, adjacent } = dateInfo;
+    const selectable = isDateSelectable(day, month, year);
+    const selected = !adjacent && day === state.selectedDay;
     const classes = ['day'];
+    if (adjacent) classes.push('adjacent');
     if (!selectable) classes.push('past', 'disabled');
     if (selected) classes.push('selected');
-    return `<button class="${classes.join(' ')}" data-day="${day}" ${selectable ? '' : 'disabled'} aria-pressed="${selected}">${day}</button>`;
+    return `<button class="${classes.join(' ')}" data-day="${day}" data-month="${month}" data-year="${year}" ${selectable ? '' : 'disabled'} aria-pressed="${selected}">${day}</button>`;
   }).join('');
 
   // После обновления HTML обработчики добавляются к новым кнопкам.
@@ -94,7 +105,7 @@ function renderTimeSlots() {
     const classes = ['time-slot'];
     if (slot.occupied) classes.push('occupied');
     if (slot.time === state.selectedTime) classes.push('selected-time');
-    return `<button class="${classes.join('')}" data-time="${slot.time}" ${slot.occupied ? 'disabled' : ''}>${slot.time}</button>`;
+    return `<button class="${classes.join(' ')}" data-time="${slot.time}" ${slot.occupied ? 'disabled' : ''}>${slot.time}</button>`;
   }).join('');
   container.querySelectorAll('.time-slot:not(.occupied)').forEach(button => {
     button.addEventListener('click', onTimeSlotClick);
@@ -104,13 +115,21 @@ function renderTimeSlots() {
 
 // ===== Обработчики =====
 function onDayClick(event) {
-  const day = Number(event.currentTarget.dataset.day);
-  if (!isDateSelectable(day, state.currentMonth, state.currentYear)) return;
+  const button = event.currentTarget;
+  const day = Number(button.dataset.day);
+  const month = Number(button.dataset.month);
+  const year = Number(button.dataset.year);
+  if (!isDateSelectable(day, month, year)) return;
+
+  // При выборе даты соседнего месяца переключаем календарь на этот месяц.
+  state.currentMonth = month;
+  state.currentYear = year;
   state.selectedDay = day;
-  state.selectedTime = null; // Сброс выбранного времени при смене даты.
+  state.selectedTime = null;
   renderCalendar();
   renderTimeSlots();
   updateBottomBar();
+  updateNextButton();
 }
 
 
@@ -118,6 +137,7 @@ function onTimeSlotClick(event) {
   state.selectedTime = event.currentTarget.dataset.time;
   renderTimeSlots();
   updateBottomBar();
+  updateNextButton();
 }
 
 
@@ -129,22 +149,25 @@ function changeMonth(direction) {
   const date = new Date(state.currentYear, state.currentMonth + direction, 1);
   state.currentMonth = date.getMonth();
   state.currentYear = date.getFullYear();
+
   const daysInMonth = new Date(state.currentYear, state.currentMonth + 1, 0).getDate();
-  const monthFirst = new Date(state.currentYear, state.currentMonth, 1);
-  const monthLast = new Date(state.currentYear, state.currentMonth, daysInMonth);
-  if (compareDates(monthLast, today) < 0) {
-    // В полностью прошедшем месяце нельзя выбрать день.
+  const firstAvailableDay = compareDates(new Date(state.currentYear, state.currentMonth, 1), today) >= 0
+    ? 1
+    : today.getMonth() === state.currentMonth && today.getFullYear() === state.currentYear
+      ? today.getDate()
+      : null;
+  const lastDate = new Date(state.currentYear, state.currentMonth, daysInMonth);
+
+  if (compareDates(lastDate, today) < 0 || firstAvailableDay === null) {
     state.selectedDay = null;
   } else {
-    state.selectedDay = Math.min(today.getDate(), daysInMonth);
-    if (!isDateSelectable(state.selectedDay, state.currentMonth, state.currentYear)) {
-      state.selectedDay = 1;
-    }
+    state.selectedDay = firstAvailableDay;
   }
   state.selectedTime = null;
   renderCalendar();
   renderTimeSlots();
   updateBottomBar();
+  updateNextButton();
 }
 
 function updateBottomBar() {
@@ -160,11 +183,31 @@ function updateBottomBar() {
 }
 
 
+function updateNextButton() {
+  const button = document.querySelector('.next-button');
+  const validDate = state.selectedDay !== null && isDateSelectable(state.selectedDay, state.currentMonth, state.currentYear);
+  const validTime = state.selectedTime !== null && state.slots.some(slot => slot.time === state.selectedTime && !slot.occupied);
+  button.disabled = !(validDate && validTime);
+}
+
+
+function setupNextButton() {
+  const button = document.querySelector('.next-button');
+  button.addEventListener('click', () => {
+    if (button.disabled) return;
+    const date = `${state.selectedDay} ${MONTHS_GENITIVE[state.currentMonth]} ${state.currentYear}`;
+    alert(`Запись выбрана: ${date} • ${state.selectedTime}`);
+  });
+}
+
+
 // ===== Инициализация =====
 function init() {
   renderCalendar();
   renderTimeSlots();
   updateBottomBar();
   setupMonthNavigation();
+  setupNextButton();
+  updateNextButton();
 }
 document.addEventListener('DOMContentLoaded', init);

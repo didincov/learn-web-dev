@@ -443,3 +443,8 @@ body {
 .time-slot:disabled {
   cursor: not-allowed;
 }
+
+/* Даты соседних месяцев */
+.day.adjacent { opacity: .65; }
+.next-button:disabled { opacity: .45; cursor: not-allowed; }
+.next-button:disabled:hover { background: #292929; }
